@@ -1,0 +1,279 @@
+%!PS-Adobe-3.0
+%FIXME: I don't yet have the metadata right.  In particular, note that
+%%+ while ps2pdf gives proper output, Okular on the source Postscript
+%%+ file doesn't.
+%%Title: LEGO design grids
+%%Copyright: To the extent possible under law, Joel Ray Holveck has waived all copyright and related or neighboring rights to this document.  This work is published from the United States.
+%%CreationDate: 2018-06-06
+%%DocumentData: Clean7Bit
+%%BoundingBox: 0 0 612 792
+%%Orientation: Portrait
+%%EndComments
+
+
+%%BeginProlog
+%%BeginResource: procset
+
+% Scaling factors; "1 lu 1 lu moveto" will move to a point 1 LEGO unit
+% horizontally and vertically from the origin, if the current matrix
+% scales by the default size (points, i.e., 1/72").
+%
+% LEGO Unit; see https://bricks.stackexchange.com/q/288/10173
+/lu { 4.53543307087 mul } bind def
+% LDraw Unit; see https://bricks.stackexchange.com/q/691/10173
+% (Not currently used)
+/ldu { 1.13385826772 mul } bind def
+% Stud width
+/stud { 22.6771653544 mul } bind def
+
+% Debugging routine: print an array to stdout (in reverse order)
+% array arr= -
+/arr= { aload length { = } repeat } bind def
+
+% (title) pagesetup -
+/pagesetup {
+    % Draw the title
+    gsave
+    2 stud 1 stud moveto
+    /Helvetica findfont
+    1 stud scalefont
+    setfont
+    show                        % Consumes (title)
+    grestore
+    % Set up the scaling and origin to be LEGO units, and inset by a
+    % 2x2 brick.
+    2 stud 2 stud translate
+    1 lu 1 lu scale
+} bind def
+
+/brickline { 0.1 setlinewidth 0.2 setgray } bind def
+/plateline { 0.1 setlinewidth 0.7 setgray } bind def
+/studline  { 0.1 setlinewidth 0.9 setgray } bind def
+
+% The following draw* routines all expect the current scaling to be LUs.
+
+/drawplatestudside {
+    gsave
+    2 setlinecap
+    studline
+    1 0 3 1 rectstroke
+    grestore
+} bind def
+
+/drawplateside {
+    gsave
+    2 setlinecap
+    plateline
+    0 0 5 2 rectstroke
+    grestore
+} bind def
+
+/drawbricklineside {
+    gsave
+    2 setlinecap
+    0 0 moveto
+    5 0 lineto
+    brickline stroke
+    grestore
+} bind def
+
+/drawbricktop {
+    gsave
+    2 setlinecap
+    plateline
+    0 0 5 5 rectstroke
+    grestore
+} bind def
+
+/drawstudtop {
+    gsave
+    2 setlinecap
+    studline
+    4 2.5 moveto
+    2.5 2.5 1.5 0 360 arc stroke
+    grestore
+} bind def
+
+% Move the origin a bit.  These expect the scaling to be LUs.
+/upplateside { 0 2 translate } bind def
+/upbrickside { 0 6 translate } bind def
+/upstud { 0 5 translate } bind def
+/rightstud { 5 0 translate } bind def
+
+% Draw a section of the title block.  This expects the scaling to be mm.
+% x y width height (name) titleblocksect -
+/titleblocksect {
+    5 dict begin
+    /name exch def
+    /height exch def
+    /width exch def
+    /y exch def
+    /x exch def
+    x y width height rectstroke
+    x 1 add y height add 3 sub moveto name show
+    end
+} bind def
+
+% Draw a title block, with the bottom-right corner at the current
+% matrix's origin.  In other words, use "x y translate titleblock"
+% or something equivalent.  This ignores the current scaling.
+/titleblock {
+    % This title block is based on the sample "compact form" title block
+    % at http://tolerancing.net/engineering-drawing/title-block.html
+    % It should be roughly conforming to ISO 7200.
+    gsave
+
+    % Switch to mm, but keep the current origin.
+    6 array currentmatrix
+    dup 0 [ 28.346457 0 0 28.346457 ] putinterval
+    setmatrix
+    % Scootch the origin back by 180 mm
+    -180 0 translate
+
+    % Erase and outline the title block section
+    1 setgray
+    0 0 180 27 rectfill
+    0 setgray
+    0.5 setlinewidth
+    0 0 180 27 rectstroke
+    % Set up the state for the interiors
+    /Helvetica findfont 2 scalefont setfont
+    0.1 setlinewidth
+    0 18 32 9 (RESPONSIBLE DEPT) titleblocksect % Optional
+    0 0 32 18 (LEGAL OWNER) titleblocksect % Logo is usually here
+    32 18 42 9 (TECHNICAL REFERENCE) titleblocksect % Optional
+    32 9 42 9 (CREATED BY) titleblocksect
+    32 0 42 9 (APPROVED BY) titleblocksect
+    74 18 61 9 (DOCUMENT TYPE) titleblocksect
+    74 0 55 18 (TITLE) titleblocksect
+    129 9 51 9 (IDENTIFICATION NUMBER) titleblocksect
+    129 0 9 9 (REV) titleblocksect % Optional
+    135 18 45 9 (DOCUMENT STATUS) titleblocksect % Optional
+    138 0 24 9 (DATE OF ISSUE) titleblocksect
+    162 0 9 9 (LANG) titleblocksect
+    171 0 9 9 (SHEET) titleblocksect % Optional
+    grestore
+} bind def
+
+%%EndResource: procset
+%%EndProlog
+
+%%BeginSetup
+<< /PageSize [792 612] >> setpagedevice
+%%EndSetup
+
+%%Page: 1
+%%BeginPageSetup
+/pgsave save def
+%%EndPageSetup
+(LEGO planning grid, side view, plates and studs) pagesetup
+
+/ncols 31 def
+/nrows 57 def
+ncols {
+    % Draw the plates and studs
+    gsave
+    nrows {
+        drawplatestudside
+        drawplateside
+        upplateside
+    } repeat
+    grestore
+    % Draw the lines at brick boundaries
+    gsave
+    nrows 3 idiv 1 add {
+        drawbricklineside
+        upbrickside
+    } repeat
+    grestore
+    % Move to the next column
+    rightstud
+} repeat
+
+titleblock
+
+pgsave restore
+showpage
+
+%%Page: 2
+%%BeginPageSetup
+/pgsave save def
+%%EndPageSetup
+(LEGO planning grid, side view, plates) pagesetup
+
+/ncols 31 def
+/nrows 57 def
+ncols {
+    % Draw the plates only
+    gsave
+    nrows {
+        drawplateside
+        upplateside
+    } repeat
+    grestore
+    % Draw the lines at brick boundaries
+    gsave
+    nrows 3 idiv 1 add {
+        drawbricklineside
+        upbrickside
+    } repeat
+    grestore
+    % Move to the next column
+    rightstud
+} repeat
+
+titleblock
+
+pgsave restore
+showpage
+
+%%Page: 3
+%%BeginPageSetup
+/pgsave save def
+%%EndPageSetup
+(LEGO planning grid, top view, bricks) pagesetup
+
+/ncols 31 def
+/nrows 23 def
+ncols {
+    gsave
+    nrows {
+        drawbricktop
+        upstud
+    } repeat
+    grestore
+    % Move to the next column
+    rightstud
+} repeat
+
+titleblock
+
+pgsave restore
+showpage
+
+%%Page: 4
+%%BeginPageSetup
+/pgsave save def
+%%EndPageSetup
+(LEGO planning grid, top view, bricks and studs) pagesetup
+
+/ncols 31 def
+/nrows 23 def
+ncols {
+    gsave
+    nrows {
+        drawbricktop
+        drawstudtop
+        upstud
+    } repeat
+    grestore
+    % Move to the next column
+    rightstud
+} repeat
+
+titleblock
+
+pgsave restore
+showpage
+
+%%EOF
